@@ -56,6 +56,59 @@ window.addEventListener('scroll', () => {
     : '0 2px 20px rgba(0,0,0,0.08)';
 });
 
+// Testimonials carousel
+(function () {
+  const track = document.getElementById('testimonialsTrack');
+  if (!track) return;
+
+  const cards = track.querySelectorAll('.testimonial-card');
+  const dotsContainer = document.getElementById('testimonialsDots');
+  const prevBtn = document.getElementById('testimonialPrev');
+  const nextBtn = document.getElementById('testimonialNext');
+  let current = 0;
+  let timer;
+
+  cards.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'testimonial-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', `Getuigenis ${i + 1}`);
+    dot.setAttribute('role', 'tab');
+    dot.addEventListener('click', () => { goTo(i); resetTimer(); });
+    dotsContainer.appendChild(dot);
+  });
+
+  function goTo(index) {
+    current = (index + cards.length) % cards.length;
+    track.style.transform = `translateX(-${current * 100}%)`;
+    dotsContainer.querySelectorAll('.testimonial-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+      d.setAttribute('aria-selected', i === current);
+    });
+  }
+
+  function resetTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => goTo(current + 1), 5500);
+  }
+
+  prevBtn.addEventListener('click', () => { goTo(current - 1); resetTimer(); });
+  nextBtn.addEventListener('click', () => { goTo(current + 1); resetTimer(); });
+
+  const carousel = track.closest('.testimonials-carousel');
+  carousel.addEventListener('mouseenter', () => clearInterval(timer));
+  carousel.addEventListener('mouseleave', resetTimer);
+
+  // Touch/swipe support
+  let touchStartX = 0;
+  track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  track.addEventListener('touchend', e => {
+    const delta = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(delta) > 50) { goTo(delta > 0 ? current + 1 : current - 1); resetTimer(); }
+  });
+
+  resetTimer();
+}());
+
 // Form submission
 const contactForm = document.getElementById('contactForm');
 if (contactForm) {
